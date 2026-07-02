@@ -21,26 +21,32 @@ jobs:
       with:
         java-version: '11'
         distribution: 'temurin'
-        cache: gradle
 
-    # 3. Dar permisos de ejecución al script de Gradle
-    - name: Conceder permisos de ejecución a gradlew
-      run: chmod +x gradlew
+    # 3. Configurar Gradle global automáticamente (Evita depender de gradlew)
+    - name: Configurar Gradle del Sistema
+      uses: gradle/actions/setup-gradle@v4
 
-    # 4. Crear un archivo .env falso para que no falle la compilación en la nube
-    # (Tu build.gradle.kts busca las propiedades de Secrets a través de .env)
+    # 4. Crear archivos .env temporales para que no fallen los secretos de AI Studio
     - name: Crear archivo .env temporal
       run: |
         echo "GEMINI_API_KEY=dummy_key_for_ci" > .env
+        if [ -d "Adblocker-main" ]; then
+          echo "GEMINI_API_KEY=dummy_key_for_ci" > Adblocker-main/.env
+        fi
 
-    # 5. Compilar la aplicación en modo Debug (No requiere firmas reales)
+    # 5. Compilar la aplicación usando Gradle directamente
     - name: Compilar APK de pruebas (Debug)
-      run: ./gradlew assembleDebug
+      run: |
+        if [ -d "Adblocker-main" ]; then
+          cd Adblocker-main && gradle assembleDebug
+        else
+          gradle assembleDebug
+        fi
 
-    # 6. Guardar el archivo APK resultante como un artefacto descargable
+    # 6. Buscar y guardar el archivo APK resultante
     - name: Subir APK compilado
       uses: actions/upload-artifact@v4
       with:
         name: NetShield-Debug-APK
-        path: app/build/outputs/apk/debug/app-debug.apk
+        path: "**/build/outputs/apk/debug/app-debug.apk"
         retention-days: 7
