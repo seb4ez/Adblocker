@@ -26,33 +26,22 @@ jobs:
     - name: Configurar Gradle del Sistema
       uses: gradle/actions/setup-gradle@v4
 
-    # 4. Crear archivos .env temporales para burlar la verificación de claves de IA
+    # 4. Crear archivo .env de configuración temporal
     - name: Crear archivo .env temporal
-      run: |
-        echo "GEMINI_API_KEY=dummy_key_for_ci" > .env
-        if [ -d "Adblocker-main" ]; then
-          echo "GEMINI_API_KEY=dummy_key_for_ci" > Adblocker-main/.env
-        fi
+      run: echo "GEMINI_API_KEY=dummy_key_for_ci" > .env
 
-    # 5. Generar un archivo de firma digital debug.keystore temporal y seguro
+    # 5. Generar el archivo de firma digital debug.keystore en la raíz
     - name: Generar debug.keystore temporal
-      run: |
-        keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
-        if [ -d "Adblocker-main" ]; then
-          cp debug.keystore Adblocker-main/debug.keystore
-        fi
+      run: keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
 
-    # 6. Compilar la aplicación usando Gradle directamente
+    # 6. Compilar la aplicación directamente en la raíz principal
     - name: Compilar APK de pruebas (Debug)
-      run: |
-        if [ -d "Adblocker-main" ]; then
-          cd Adblocker-main && gradle assembleDebug
-        fi
+      run: gradle assembleDebug
 
-    # 7. Buscar y guardar el archivo APK resultante
+    # 7. Subir el archivo APK compilado a tus artefactos de GitHub
     - name: Subir APK compilado
       uses: actions/upload-artifact@v4
       with:
         name: NetShield-Debug-APK
-        path: "**/build/outputs/apk/debug/app-debug.apk"
+        path: app/build/outputs/apk/debug/app-debug.apk
         retention-days: 7
