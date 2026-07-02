@@ -15,7 +15,7 @@ jobs:
     - name: Checkout del código
       uses: actions/checkout@v4
 
-    # 2. Configurar el entorno de Java 17 (Requerido para que Gradle 9+ funcione)
+    # 2. Configurar el entorno de Java 17
     - name: Configurar JDK 17
       uses: actions/setup-java@v4
       with:
@@ -34,16 +34,22 @@ jobs:
           echo "GEMINI_API_KEY=dummy_key_for_ci" > Adblocker-main/.env
         fi
 
-    # 5. Compilar la aplicación usando Gradle directamente
+    # 5. Generar un archivo de firma digital debug.keystore temporal y seguro
+    - name: Generar debug.keystore temporal
+      run: |
+        keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+        if [ -d "Adblocker-main" ]; then
+          cp debug.keystore Adblocker-main/debug.keystore
+        fi
+
+    # 6. Compilar la aplicación usando Gradle directamente
     - name: Compilar APK de pruebas (Debug)
       run: |
         if [ -d "Adblocker-main" ]; then
           cd Adblocker-main && gradle assembleDebug
-        else
-          gradle assembleDebug
         fi
 
-    # 6. Buscar y guardar el archivo APK resultante
+    # 7. Buscar y guardar el archivo APK resultante
     - name: Subir APK compilado
       uses: actions/upload-artifact@v4
       with:
