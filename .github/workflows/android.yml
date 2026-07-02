@@ -15,18 +15,18 @@ jobs:
     - name: Checkout del código
       uses: actions/checkout@v4
 
-    # 2. Configurar el entorno de Java (Tu proyecto usa la versión 11)
-    - name: Configurar JDK 11
+    # 2. Configurar el entorno de Java 17 (Requerido para que Gradle 9+ funcione)
+    - name: Configurar JDK 17
       uses: actions/setup-java@v4
       with:
-        java-version: '11'
+        java-version: '17'
         distribution: 'temurin'
 
-    # 3. Configurar Gradle global automáticamente (Evita depender de gradlew)
+    # 3. Configurar Gradle del Sistema
     - name: Configurar Gradle del Sistema
       uses: gradle/actions/setup-gradle@v4
 
-    # 4. Crear archivos .env temporales para que no fallen los secretos de AI Studio
+    # 4. Crear archivos .env temporales para burlar la verificación de claves de IA
     - name: Crear archivo .env temporal
       run: |
         echo "GEMINI_API_KEY=dummy_key_for_ci" > .env
