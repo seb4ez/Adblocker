@@ -1,0 +1,6 @@
+{
+  "name": "NetShield",
+  "description": "Robust local network ad-blocking, DNS proxy server, VPN ad-filter, and device management dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
